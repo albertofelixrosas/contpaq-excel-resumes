@@ -19,7 +19,8 @@ export class ExcelService {
     try {
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.readFile(filePath);
-      const worksheet = workbook.getWorksheet(1); // primera hoja
+      console.log({ workbook });
+      const worksheet = workbook.worksheets[0];
 
       if (!worksheet) {
         console.error('No se encontró la hoja de cálculo.');
@@ -30,7 +31,13 @@ export class ExcelService {
       worksheet.eachRow((row, rowNumber) => {
         if (Array.isArray(row.values)) {
           row.values.forEach((field, columnNumber) => {
-            return `Row: ${rowNumber}, Column ${columnNumber}`;
+            console.log(
+              `Row: ${rowNumber}, Column ${columnNumber}: ${
+                typeof field === 'object' && field !== null
+                  ? JSON.stringify(field)
+                  : String(field)
+              }`,
+            );
           });
         }
       });
@@ -84,8 +91,8 @@ export class ExcelService {
 
     // 1️⃣ Buscar el primer registro con "Egresos" o "Diario" en la columna 2
     for (let i = 1; i < rows.length; i++) {
-      const col2 = String(rows[i]?.[2] || '').trim();
-      if (col2 === 'Egresos' || col2 === 'Diario') {
+      const col1 = String(rows[i]?.[1] || '').trim();
+      if (col1.toLowerCase().startsWith('segmento:')) {
         startIndex = i;
         break;
       }
