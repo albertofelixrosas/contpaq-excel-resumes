@@ -13,7 +13,7 @@ export class Movement {
   movement_id: number;
 
   @Column()
-  acount_id: number;
+  segment_id: number;
 
   @Column({ type: 'date' })
   date: Date;
@@ -27,7 +27,7 @@ export class Movement {
   @Column()
   reference: string;
 
-  @Column()
+  @Column({ type: 'numeric', precision: 10, scale: 2 })
   charge: number;
 
   @CreateDateColumn({

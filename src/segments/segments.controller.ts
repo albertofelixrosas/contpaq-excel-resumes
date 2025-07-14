@@ -14,9 +14,11 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { Segment } from './entities/segment.entity';
 
+@ApiTags('Segmentos')
 @Controller('segments')
 export class SegmentsController {
   constructor(private readonly segmentsService: SegmentsService) {}
@@ -36,7 +38,7 @@ export class SegmentsController {
   @ApiOperation({ summary: 'Obtener todos los segmentos registradas' })
   @ApiResponse({
     status: 200,
-    description: 'Listado de compañías',
+    description: 'Listado de segmentos',
     type: [Segment],
   })
   findAll() {

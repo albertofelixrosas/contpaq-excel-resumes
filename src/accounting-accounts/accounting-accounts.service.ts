@@ -51,6 +51,16 @@ export class AccountingAccountsService {
   }
 
   async update(id: number, dto: UpdateAccountingAccountDto) {
+    const accountingAccount = await this.repo.findOneBy({
+      accounting_account_id: id,
+    });
+
+    if (!accountingAccount) {
+      throw new BadRequestException(
+        `No existe ninguna cuenta contable con el id "${id}"`,
+      );
+    }
+
     const company = await this.companiesRepo.findOneBy({
       company_id: dto.company_id,
     });
@@ -60,7 +70,9 @@ export class AccountingAccountsService {
         `No existe ninguna empresa con el id "${dto.company_id}"`,
       );
     }
-    return this.repo.save(dto);
+
+    const updatedAccountingAccount = this.repo.merge(accountingAccount, dto);
+    return this.repo.save(updatedAccountingAccount);
   }
 
   async remove(id: number) {

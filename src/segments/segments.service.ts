@@ -51,6 +51,15 @@ export class SegmentsService {
   }
 
   async update(id: number, dto: UpdateSegmentDto) {
+    const segment = await this.repo.findOneBy({
+      segment_id: id,
+    });
+    if (!segment) {
+      throw new BadRequestException(
+        `No existe ningun segmento con el id "${id}"`,
+      );
+    }
+
     const accountingAccount = await this.accountingAccountsRepo.findOneBy({
       accounting_account_id: dto.accounting_account_id,
     });
@@ -61,8 +70,8 @@ export class SegmentsService {
       );
     }
 
-    const segment = this.repo.create(dto);
-    return this.repo.save(segment);
+    const updatedSegment = this.repo.merge(segment, dto);
+    return this.repo.save(updatedSegment);
   }
 
   async remove(id: number) {

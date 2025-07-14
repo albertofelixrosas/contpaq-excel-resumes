@@ -42,8 +42,8 @@ export class CompaniesService {
   }
 
   async update(id: number, dto: UpdateCompanyDto) {
-    const company = await this.repo.findOne({
-      where: { company_id: id },
+    const company = await this.repo.findOneBy({
+      company_id: id,
     });
 
     if (!company) {
@@ -51,7 +51,8 @@ export class CompaniesService {
         `No se encontro una empresa con el id "${id}"`,
       );
     }
-    return this.repo.save(dto);
+    const updatedCompany = this.repo.merge(company, dto);
+    return this.repo.save(updatedCompany);
   }
 
   async remove(id: number) {

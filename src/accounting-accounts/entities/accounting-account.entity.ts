@@ -1,5 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { Segment } from 'src/segments/entities/segment.entity';
 
 @Entity('accounting_accounts')
 export class AccountingAccount {
@@ -19,4 +26,9 @@ export class AccountingAccount {
     cascade: true,
   })
   company: Company;
+
+  @OneToMany(() => Segment, (segment) => segment.accounting_account, {
+    cascade: true,
+  })
+  segments: Segment[];
 }

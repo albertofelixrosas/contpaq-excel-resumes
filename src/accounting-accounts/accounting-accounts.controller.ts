@@ -14,9 +14,11 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { AccountingAccount } from './entities/accounting-account.entity';
 
+@ApiTags('Cuentas contables')
 @Controller('accounting-accounts')
 export class AccountingAccountsController {
   constructor(
