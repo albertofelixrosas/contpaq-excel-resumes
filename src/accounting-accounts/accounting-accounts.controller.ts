@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { AccountingAccountsService } from './accounting-accounts.service';
 import { CreateAccountingAccountDto } from './dto/create-accounting-account.dto';
 import { UpdateAccountingAccountDto } from './dto/update-accounting-account.dto';
 
 @Controller('accounting-accounts')
 export class AccountingAccountsController {
-  constructor(private readonly accountingAccountsService: AccountingAccountsService) {}
+  constructor(
+    private readonly accountingAccountsService: AccountingAccountsService,
+  ) {}
 
   @Post()
   create(@Body() createAccountingAccountDto: CreateAccountingAccountDto) {
@@ -23,8 +33,14 @@ export class AccountingAccountsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAccountingAccountDto: UpdateAccountingAccountDto) {
-    return this.accountingAccountsService.update(+id, updateAccountingAccountDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateAccountingAccountDto: UpdateAccountingAccountDto,
+  ) {
+    return this.accountingAccountsService.update(
+      +id,
+      updateAccountingAccountDto,
+    );
   }
 
   @Delete(':id')
