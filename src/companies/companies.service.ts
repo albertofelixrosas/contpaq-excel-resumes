@@ -1,26 +1,66 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Company } from './entities/company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CompaniesService {
-  create(createCompanyDto: CreateCompanyDto) {
-    return 'This action adds a new company';
+  constructor(
+    @InjectRepository(Company)
+    private readonly repo: Repository<Company>,
+  ) {}
+
+  create(dto: CreateCompanyDto) {
+    const company = this.repo.create(dto);
+    return this.repo.save(company);
   }
 
   findAll() {
-    return `This action returns all companies`;
+    return this.repo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} company`;
+  async findOne(id: number) {
+    const company = await this.repo.findOneBy({ company_id: id });
+    if (!company) {
+      throw new NotFoundException(
+        `No se encontro una empresa con el id "${id}"`,
+      );
+    }
+    return company;
   }
 
-  update(id: number, updateCompanyDto: UpdateCompanyDto) {
-    return `This action updates a #${id} company`;
+  async findOneByCompanyName(companyName: string) {
+    const company = await this.repo.findOneBy({ company_name: companyName });
+    if (!company) {
+      throw new NotFoundException(
+        `No se encontro una empresa con la razón social "${companyName}"`,
+      );
+    }
+    return company;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} company`;
+  async update(id: number, dto: UpdateCompanyDto) {
+    const company = await this.repo.findOne({
+      where: { company_id: id },
+    });
+
+    if (!company) {
+      throw new NotFoundException(
+        `No se encontro una empresa con el id "${id}"`,
+      );
+    }
+    return this.repo.save(dto);
+  }
+
+  async remove(id: number) {
+    const company = await this.repo.findOneBy({ company_id: id });
+    if (!company) {
+      throw new NotFoundException(
+        `No se encontro una empresa con el id "${id}"`,
+      );
+    }
+    return this.repo.delete(id);
   }
 }

@@ -5,7 +5,7 @@ import * as path from 'path';
 import { ExcelReaderService } from './reader/excel-reader.service';
 import { ExcelCalculatorService } from './calculator/excel-calculator.service';
 import { ExcelWriterService } from './writer/excel-writer.service';
-import { Record, Resume } from 'src/types/excel';
+// import { Record, Resume } from 'src/types/excel';
 
 @Injectable()
 export class ExcelService {
@@ -77,12 +77,12 @@ export class ExcelService {
     return outputPath;
   }
 
-  async parseResume(filePath: string): Promise<Resume> {
+  async parseResume(filePath: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
     const sheet = workbook.worksheets[0];
 
-    const resume: Resume = { records: [] };
+    // const resume: Resume = { records: [] };
 
     const rows = sheet.getSheetValues(); // matriz [fila][columna]
     let startIndex = 1;
@@ -110,7 +110,7 @@ export class ExcelService {
 
     if (nombreRowIndex === -1) {
       console.error('No se encontró la fila con "N o m b r e"');
-      return resume;
+      // return resume;
     }
 
     // 3️⃣ Procesar los bloques de movimientos a partir de la fila vacía debajo de "Tipo"
@@ -125,10 +125,12 @@ export class ExcelService {
         continue;
       }
 
+      /*
       const record: Record = {
         title: nombre,
         rows: [],
       };
+      */
 
       const nextRow = rows[i + 1] || [];
       const nextRowFirstCell = String(nextRow?.[1] || '').trim();
@@ -136,7 +138,7 @@ export class ExcelService {
       // 4️⃣ Ver si tiene movimientos
       if (!nextRowFirstCell) {
         // no hay movimientos asociados
-        resume.records.push(record);
+        // resume.records.push(record); -> Agregar registro de los movimientos
         i += 2; // saltar esta cabecera + fila vacía
         continue;
       }
@@ -146,12 +148,14 @@ export class ExcelService {
         const row = rows[i];
         const date = String(row?.[1] || '').trim();
         const type = String(row?.[2] || '').trim() as 'Egresos' | 'Diario';
+        /*
         const number = Number(row?.[3] || 0);
         const concept = String(row?.[4] || '').trim();
         const reference = String(row?.[5] || '').trim();
         const debits = this.parseNumber(row?.[6]);
         const credits = this.parseNumber(row?.[7]);
         const balance = this.parseNumber(row?.[8]);
+        */
 
         if (!date) {
           i++;
@@ -170,6 +174,7 @@ export class ExcelService {
         }
 
         if (this.isValidDate(date)) {
+          /*
           record.rows.push({
             date,
             type,
@@ -180,16 +185,17 @@ export class ExcelService {
             credits,
             balance,
           });
+          */
         }
 
         i++;
       }
 
-      resume.records.push(record);
+      // resume.records.push(record);
     }
 
-    await this.writer.writeJson(resume);
-    return resume;
+    await this.writer.writeJson(/* resume */ {});
+    // return resume;
   }
 
   private isValidDate(value: string): boolean {
