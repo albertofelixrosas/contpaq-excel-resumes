@@ -9,5 +9,6 @@ import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-a
   imports: [TypeOrmModule.forFeature([Segment, AccountingAccount])],
   controllers: [SegmentsController],
   providers: [SegmentsService],
+  exports: [SegmentsService],
 })
 export class SegmentsModule {}

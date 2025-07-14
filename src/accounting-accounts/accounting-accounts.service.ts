@@ -50,6 +50,30 @@ export class AccountingAccountsService {
     return accountingAccount;
   }
 
+  async findOrCreateByCodeAndName(
+    companyId: number,
+    code: string,
+    name: string,
+  ): Promise<AccountingAccount> {
+    let account = await this.repo.findOneBy({
+      acount_code: code,
+      company_id: companyId,
+    });
+
+    if (!account) {
+      const dto: CreateAccountingAccountDto = {
+        company_id: companyId,
+        name,
+        acount_code: code,
+      };
+
+      account = await this.create(dto);
+      return this.repo.save(account);
+    }
+
+    return account;
+  }
+
   async update(id: number, dto: UpdateAccountingAccountDto) {
     const accountingAccount = await this.repo.findOneBy({
       accounting_account_id: id,

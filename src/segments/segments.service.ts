@@ -50,6 +50,25 @@ export class SegmentsService {
     return segment;
   }
 
+  async findOrCreateByCode(accountId: number, code: string): Promise<Segment> {
+    let segment = await this.repo.findOneBy({
+      accounting_account_id: accountId,
+      code,
+    });
+
+    if (!segment) {
+      const dto: CreateSegmentDto = {
+        accounting_account_id: accountId,
+        code,
+      };
+
+      segment = await this.create(dto);
+      return this.repo.save(segment);
+    }
+
+    return segment;
+  }
+
   async update(id: number, dto: UpdateSegmentDto) {
     const segment = await this.repo.findOneBy({
       segment_id: id,

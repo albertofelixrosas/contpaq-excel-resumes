@@ -9,5 +9,6 @@ import { Segment } from 'src/segments/entities/segment.entity';
   imports: [TypeOrmModule.forFeature([Movement, Segment])],
   controllers: [MovementsController],
   providers: [MovementsService],
+  exports: [MovementsService],
 })
 export class MovementsModule {}

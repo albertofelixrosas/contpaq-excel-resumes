@@ -10,8 +10,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ExcelService } from './excel.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { ApiConsumes, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('excel')
+@ApiTags('Excel')
 export class ExcelController {
   constructor(private readonly excelService: ExcelService) {}
 
@@ -30,6 +32,21 @@ export class ExcelController {
       }),
     }),
   )
+  @ApiConsumes('multipart/form-data') // Indica que consume multipart
+  @ApiBody({
+    description: 'Archivo Excel a subir (.xlsx, .xls)',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Archivo procesado correctamente' })
+  @ApiResponse({ status: 400, description: 'Tipo de archivo inválido o error' })
   async uploadSingleFile(@UploadedFile() file: Express.Multer.File) {
     const allowedMimes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
@@ -40,6 +57,7 @@ export class ExcelController {
       if (!file || !allowedMimes.includes(file.mimetype)) {
         throw new Error('Invalid file type. Please upload an Excel file.');
       }
+      /*
       const haveValidFileFormat = await this.excelService.validateFormat(
         file.path,
       );
@@ -48,6 +66,7 @@ export class ExcelController {
           'El archivo no parece tener el formato correcto para procesarlo',
         );
       }
+      */
       // await this.excelService.procesar();
       await this.excelService.parseResume(file.path);
       return {
@@ -69,6 +88,7 @@ export class ExcelController {
   }
 
   @Get('generate')
+  @ApiResponse({ status: 200, description: 'Archivo de prueba generado' })
   async generate() {
     const path = await this.excelService.createTestExcel();
     return { message: 'Archivo generado', path };

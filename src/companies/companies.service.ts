@@ -41,6 +41,22 @@ export class CompaniesService {
     return company;
   }
 
+  async findOrCreateByCompanyName(companyName: string): Promise<Company> {
+    let company = await this.repo.findOneBy({ company_name: companyName });
+
+    if (!company) {
+      const dto: CreateCompanyDto = {
+        company_name: companyName,
+        rfc: '',
+      };
+
+      company = await this.create(dto);
+      return this.repo.save(company);
+    }
+
+    return company;
+  }
+
   async update(id: number, dto: UpdateCompanyDto) {
     const company = await this.repo.findOneBy({
       company_id: id,
