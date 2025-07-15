@@ -11,6 +11,7 @@ import { AccountingAccountsService } from 'src/accounting-accounts/accounting-ac
 import { SegmentsService } from 'src/segments/segments.service';
 import { MovementsService } from 'src/movements/movements.service';
 import { convertToISODate } from './utils/dateUtils';
+import { excelCommonDateRegex } from './utils/dateUtils';
 
 @Injectable()
 export class ExcelService {
@@ -125,7 +126,8 @@ export class ExcelService {
           const segmentCode = currentFirstColumn
             .split(' ')
             .filter((_, index) => index > 0)
-            .join('');
+            .join(' ')
+            .trim();
           const segment = await this.segmentsService.findOrCreateByCode(
             currentAccountId,
             segmentCode,
@@ -133,7 +135,7 @@ export class ExcelService {
           currentSegmentId = segment.segment_id;
         }
         // 3. Movimiento
-        if (currentFirstColumn.length === 12) {
+        if (currentFirstColumn.match(excelCommonDateRegex)) {
           const movementDate = String(currentRow?.[1] || '');
           // const movementType = String(currentRow?.[2] || ''); // El tipo del movimiento -> "Diario" o "Egresos"
           const movementNumber = String(currentRow?.[3] || '');
@@ -148,7 +150,7 @@ export class ExcelService {
             charge: parseFloat(movementCharge),
             reference: movementReference,
           };
-          const movement = this.movementsService.create(dto);
+          const movement = await this.movementsService.create(dto);
           console.log({ movement });
         }
       }
@@ -159,9 +161,12 @@ export class ExcelService {
       }
       throw error;
     }
-    // await this.writer.writeJson(/* resume */ {});
-
-    // 3️⃣ Procesar los bloques de movimientos a partir de la fila vacía debajo de "Tipo"
+    /*
+    SELECT c.company_name, aa.acount_code, aa."name", s.code, m."date", m."number", m.concept, m.reference, m.charge FROM companies AS c 
+    INNER JOIN accounting_accounts AS aa ON c.company_id = aa.company_id
+    INNER JOIN segments AS s ON aa.accounting_account_id = s.accounting_account_id
+    INNER JOIN movements AS m ON s.segment_id = m.segment_id;
+    */
   }
 
   private isValidDate(value: string): boolean {
