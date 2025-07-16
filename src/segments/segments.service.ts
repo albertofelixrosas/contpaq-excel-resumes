@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-account.entity';
 import { Segment } from './entities/segment.entity';
+import { GetSegmentsQueryDto } from './dto/get-segment-query.dto';
 
 @Injectable()
 export class SegmentsService {
@@ -34,8 +35,17 @@ export class SegmentsService {
     return this.repo.save(segment);
   }
 
-  findAll() {
-    return this.repo.find();
+  findAll(query: GetSegmentsQueryDto) {
+    const qb = this.repo.createQueryBuilder('segment');
+
+    if (query.company_id) {
+      qb.innerJoin('segment.accounting_account', 'account').andWhere(
+        'account.company_id = :company_id',
+        { company_id: query.company_id },
+      );
+    }
+
+    return qb.getMany();
   }
 
   async findOne(id: number) {

@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SegmentsService } from './segments.service';
 import { CreateSegmentDto } from './dto/create-segment.dto';
@@ -13,10 +14,12 @@ import { UpdateSegmentDto } from './dto/update-segment.dto';
 import {
   ApiNotFoundResponse,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { Segment } from './entities/segment.entity';
+import { GetSegmentsQueryDto } from './dto/get-segment-query.dto';
 
 @ApiTags('Segmentos')
 @Controller('segments')
@@ -41,8 +44,14 @@ export class SegmentsController {
     description: 'Listado de segmentos',
     type: [Segment],
   })
-  findAll() {
-    return this.segmentsService.findAll();
+  @ApiQuery({
+    name: 'company_id',
+    required: false,
+    type: Number,
+    description: 'ID de la empresa para filtrar',
+  })
+  findAll(@Query() query: GetSegmentsQueryDto) {
+    return this.segmentsService.findAll(query);
   }
 
   @Get(':id')
