@@ -10,6 +10,8 @@ import { Segment } from 'src/segments/entities/segment.entity';
 import { Repository } from 'typeorm';
 import { Movement } from './entities/movement.entity';
 import { MovementFilterDto } from './dto/movement-filter.dto';
+import { PaginatedMovementsDto } from './dto/paginated-movements.dto';
+import { MovementReportDto } from './dto/movement-report.dto';
 
 @Injectable()
 export class MovementsService {
@@ -37,16 +39,20 @@ export class MovementsService {
     return this.repo.find();
   }
 
-  async getMovements(filter: MovementFilterDto) {
+  async getMovements(
+    filter: MovementFilterDto,
+  ): Promise<PaginatedMovementsDto> {
     const {
       company_id,
       accounting_account_id,
       segment_id,
       start_date,
       end_date,
-      page = 1,
-      limit = 20,
+      page,
+      limit,
     } = filter;
+
+    console.log({ filter });
 
     const qb = this.repo
       .createQueryBuilder('m')
@@ -69,9 +75,7 @@ export class MovementsService {
         start_date,
         end_date,
       })
-      .orderBy('m.date', 'ASC')
-      .skip((page - 1) * limit)
-      .take(limit);
+      .orderBy('m.date', 'ASC');
 
     if (company_id) {
       qb.andWhere('c.company_id = :company_id', { company_id });
@@ -88,10 +92,13 @@ export class MovementsService {
     }
 
     qb.orderBy('m.date', 'ASC')
-      .skip((page - 1) * limit)
-      .take(limit);
+      .offset((page - 1) * limit)
+      .limit(limit);
 
-    const [data, total] = await Promise.all([qb.getRawMany(), qb.getCount()]);
+    const [data, total] = await Promise.all([
+      qb.getRawMany<MovementReportDto>(),
+      qb.getCount(),
+    ]);
 
     return {
       data,

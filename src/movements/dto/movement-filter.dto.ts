@@ -29,17 +29,17 @@ export class MovementFilterDto {
   @IsDateString()
   end_date: string;
 
-  @ApiPropertyOptional({ description: 'Página', default: 1 })
+  @ApiPropertyOptional({ description: 'Página' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page: number = 1;
+  page: number;
 
-  @ApiPropertyOptional({ description: 'Resultados por página', default: 20 })
+  @ApiPropertyOptional({ description: 'Resultados por página' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  limit: number = 20;
+  limit: number;
 }
