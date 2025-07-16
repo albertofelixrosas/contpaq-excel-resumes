@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -31,10 +32,8 @@ export class Segment {
   @Column({ nullable: true })
   farm_name: string;
 
-  @ManyToOne(
-    () => AccountingAccount,
-    (accountingAccount) => accountingAccount.segments,
-  )
+  @ManyToOne(() => AccountingAccount, (aa) => aa.segments)
+  @JoinColumn({ name: 'accounting_account_id' })
   accounting_account: AccountingAccount;
 
   @OneToMany(() => Movement, (movement) => movement.segment)

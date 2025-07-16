@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Segment } from 'src/segments/entities/segment.entity';
 import { Repository } from 'typeorm';
 import { Movement } from './entities/movement.entity';
+import { MovementFilterDto } from './dto/movement-filter.dto';
 
 @Injectable()
 export class MovementsService {
@@ -34,6 +35,71 @@ export class MovementsService {
 
   findAll() {
     return this.repo.find();
+  }
+
+  async getMovements(filter: MovementFilterDto) {
+    const {
+      company_id,
+      accounting_account_id,
+      segment_id,
+      start_date,
+      end_date,
+      page = 1,
+      limit = 20,
+    } = filter;
+
+    const qb = this.repo
+      .createQueryBuilder('m')
+      .innerJoin('m.segment', 's')
+      .innerJoin('s.accounting_account', 'aa')
+      .innerJoin('aa.company', 'c')
+      .select([
+        'm.movement_id AS "movement_id"',
+        'c.company_name AS "company_name"',
+        'aa.acount_code AS "acount_code"',
+        'aa.name AS "account_name"',
+        's.code AS "segment_code"',
+        'm.date AS "date"',
+        'm.number AS "number"',
+        'm.concept AS "concept"',
+        'm.reference AS "reference"',
+        'm.charge AS "charge"',
+      ])
+      .where('m.date BETWEEN :start_date AND :end_date', {
+        start_date,
+        end_date,
+      })
+      .orderBy('m.date', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    if (company_id) {
+      qb.andWhere('c.company_id = :company_id', { company_id });
+    }
+
+    if (accounting_account_id) {
+      qb.andWhere('aa.accounting_account_id = :accounting_account_id', {
+        accounting_account_id,
+      });
+    }
+
+    if (segment_id) {
+      qb.andWhere('s.segment_id = :segment_id', { segment_id });
+    }
+
+    qb.orderBy('m.date', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await Promise.all([qb.getRawMany(), qb.getCount()]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: number) {

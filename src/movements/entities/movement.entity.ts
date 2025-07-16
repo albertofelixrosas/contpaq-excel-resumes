@@ -5,6 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('movements')
@@ -38,5 +39,6 @@ export class Movement {
   @ManyToOne(() => Segment, (segment) => segment.movements, {
     cascade: true,
   })
+  @JoinColumn({ name: 'segment_id' })
   segment: Segment;
 }

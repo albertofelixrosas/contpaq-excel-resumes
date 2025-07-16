@@ -6,17 +6,20 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { MovementsService } from './movements.service';
 import { CreateMovementDto } from './dto/create-movement.dto';
 import { UpdateMovementDto } from './dto/update-movement.dto';
 import {
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { Movement } from './entities/movement.entity';
+import { MovementFilterDto } from './dto/movement-filter.dto';
 
 @ApiTags('Movimientos')
 @Controller('movements')
@@ -35,14 +38,9 @@ export class MovementsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todos los movimientos registrados' })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado de movimiento',
-    type: [Movement],
-  })
-  findAll() {
-    return this.movementsService.findAll();
+  @ApiOkResponse({ description: 'Movimientos obtenidos correctamente' })
+  async getMovements(@Query() filter: MovementFilterDto) {
+    return this.movementsService.getMovements(filter);
   }
 
   @Get(':id')
