@@ -23,6 +23,9 @@ export class Movement {
   number: number;
 
   @Column()
+  supplier: string;
+
+  @Column()
   concept: string;
 
   @Column()

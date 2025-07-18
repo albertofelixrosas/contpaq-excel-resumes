@@ -4,12 +4,12 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
-  Get,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExcelService } from './excel.service';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { ApiConsumes, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('excel')
@@ -23,11 +23,7 @@ export class ExcelController {
       storage: diskStorage({
         destination: './uploads', // Directory to save uploaded files
         filename: (req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          return cb(null, `${randomName}${extname(file.originalname)}`);
+          return cb(null, file.originalname);
         },
       }),
     }),
@@ -55,42 +51,33 @@ export class ExcelController {
     try {
       console.log({ file });
       if (!file || !allowedMimes.includes(file.mimetype)) {
-        throw new Error('Invalid file type. Please upload an Excel file.');
-      }
-      /*
-      const haveValidFileFormat = await this.excelService.validateFormat(
-        file.path,
-      );
-      if (!haveValidFileFormat) {
-        throw new Error(
-          'El archivo no parece tener el formato correcto para procesarlo',
+        throw new BadRequestException(
+          'Tipo de archivo invalido, los tipos admitidos son archivos excel (.xls, .xlsx).',
         );
       }
-      */
-      // await this.excelService.procesar();
       await this.excelService.parseResume(file.path);
       return {
         message: '¡Se ha procesado correctamente el archivo!',
         filename: file.filename,
+        statusCode: 201,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        return {
-          message: 'Error uploading file',
-          error: error.message,
-        };
+      if (error instanceof BadRequestException) {
+        throw error;
       }
-      return {
-        message: 'Error uploading file',
-        error: 'An unexpected error occurred.',
-      };
+
+      console.error(error);
+
+      throw new InternalServerErrorException(
+        error instanceof Error ? error.message : 'Un error desconocido ocurrió',
+      );
     }
   }
 
-  @Get('generate')
-  @ApiResponse({ status: 200, description: 'Archivo de prueba generado' })
-  async generate() {
-    const path = await this.excelService.createTestExcel();
-    return { message: 'Archivo generado', path };
+  /*
+  @Post('info')
+  async getCompanyFilesData() {
+    
   }
+  */
 }

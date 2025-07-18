@@ -37,8 +37,16 @@ export class CreateMovementDto {
   number: number;
 
   @ApiProperty({
+    description: 'Origen del pago, a veces quien fue el responsable del pago',
+    example: 'JHONSTON BELTRAN GLADYS',
+  })
+  @IsNotEmpty()
+  @IsString()
+  supplier: string;
+
+  @ApiProperty({
     description: 'Concepto por el cual se hizo el pago',
-    example: 'INSUMOS AGROPECUARIOS Y SERVICIOS VETERINARIOS',
+    example: 'SUELDOS Y SALARIOS',
   })
   @IsNotEmpty()
   @IsString()

@@ -1,4 +1,11 @@
-import { IsOptional, IsInt, IsDateString, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  IsDateString,
+  Min,
+  IsString,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -28,6 +35,11 @@ export class MovementFilterDto {
   @ApiProperty({ description: 'Fecha final (YYYY-MM-DD)' })
   @IsDateString()
   end_date: string;
+
+  @ApiProperty({ description: 'Nombre del concepto' })
+  @IsNotEmpty()
+  @IsString()
+  concept?: string;
 
   @ApiPropertyOptional({ description: 'Página' })
   @IsOptional()
