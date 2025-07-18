@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { AccountingAccountsService } from './accounting-accounts.service';
 import { CreateAccountingAccountDto } from './dto/create-accounting-account.dto';
@@ -13,10 +14,12 @@ import { UpdateAccountingAccountDto } from './dto/update-accounting-account.dto'
 import {
   ApiNotFoundResponse,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { AccountingAccount } from './entities/accounting-account.entity';
+import { GetAccountingAccountsQueryDto } from './dto/get-accounting-account-query.dto';
 
 @ApiTags('Cuentas contables')
 @Controller('accounting-accounts')
@@ -43,8 +46,14 @@ export class AccountingAccountsController {
     description: 'Listado de cuentas contables',
     type: [AccountingAccount],
   })
-  findAll() {
-    return this.accountingAccountsService.findAll();
+  @ApiQuery({
+    name: 'company_id',
+    required: false,
+    type: Number,
+    description: 'ID de la empresa para filtrar',
+  })
+  findAll(@Query() query: GetAccountingAccountsQueryDto) {
+    return this.accountingAccountsService.findAll(query);
   }
 
   @Get(':id')

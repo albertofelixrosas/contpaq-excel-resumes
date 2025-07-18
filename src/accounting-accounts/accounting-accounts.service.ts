@@ -9,6 +9,7 @@ import { AccountingAccount } from './entities/accounting-account.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Company } from 'src/companies/entities/company.entity';
+import { GetAccountingAccountsQueryDto } from './dto/get-accounting-account-query.dto';
 
 @Injectable()
 export class AccountingAccountsService {
@@ -34,10 +35,31 @@ export class AccountingAccountsService {
     return this.repo.save(accountingAccount);
   }
 
-  findAll() {
-    return this.repo.find();
-  }
+  findAll(query: GetAccountingAccountsQueryDto) {
+    const qb = this.repo.createQueryBuilder('account');
 
+    if (query.company_id) {
+      qb.where('account.company_id = :company_id', {
+        company_id: query.company_id,
+      });
+    }
+
+    return qb.getMany();
+  }
+  /*
+  findAll(query: GetSegmentsQueryDto) {
+    const qb = this.repo.createQueryBuilder('segment');
+
+    if (query.company_id) {
+      qb.innerJoin('segment.accounting_account', 'account').andWhere(
+        'account.company_id = :company_id',
+        { company_id: query.company_id },
+      );
+    }
+
+    return qb.getMany();
+  }
+*/
   async findOne(id: number) {
     const accountingAccount = await this.repo.findOneBy({
       accounting_account_id: id,
