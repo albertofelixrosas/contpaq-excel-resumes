@@ -109,6 +109,24 @@ export class MovementsService {
     };
   }
 
+  async countMovementsByDate(companyId: number) {
+    const qb = this.repo
+      .createQueryBuilder('m')
+      .innerJoin('m.segment', 's')
+      .innerJoin('s.accounting_account', 'aa')
+      .innerJoin('aa.company', 'c')
+      .where('c.company_id = :companyId', { companyId })
+      .select(['m.date AS date', 'COUNT(m.movement_id) AS count'])
+      .groupBy('m.date')
+      .orderBy('m.date', 'ASC');
+
+    const result = await qb.getRawMany<{ date: string; count: string }>();
+    return result.map((r) => ({
+      date: r.date,
+      count: Number(r.count),
+    }));
+  }
+
   async findOne(id: number) {
     const movement = await this.repo.findOneBy({
       movement_id: id,

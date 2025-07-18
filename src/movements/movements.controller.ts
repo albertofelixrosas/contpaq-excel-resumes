@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MovementsService } from './movements.service';
 import { CreateMovementDto } from './dto/create-movement.dto';
@@ -15,6 +16,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -41,6 +43,14 @@ export class MovementsController {
   @ApiOkResponse({ description: 'Movimientos obtenidos correctamente' })
   async getMovements(@Query() filter: MovementFilterDto) {
     return this.movementsService.getMovements(filter);
+  }
+
+  @Get('heatmap')
+  @ApiOperation({ summary: 'Heatmap de movimientos por fecha' })
+  @ApiQuery({ name: 'company_id', type: Number, required: true })
+  @ApiResponse({ status: 200, description: 'Datos para heatmap' })
+  async getHeatmap(@Query('company_id', ParseIntPipe) companyId: number) {
+    return this.movementsService.countMovementsByDate(companyId);
   }
 
   @Get(':id')
