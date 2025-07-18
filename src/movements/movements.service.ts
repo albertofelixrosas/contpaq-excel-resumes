@@ -46,6 +46,7 @@ export class MovementsService {
       company_id,
       accounting_account_id,
       segment_id,
+      concept,
       start_date,
       end_date,
       page,
@@ -67,6 +68,7 @@ export class MovementsService {
         's.code AS "segment_code"',
         'm.date AS "date"',
         'm.number AS "number"',
+        'm.supplier AS "supplier"',
         'm.concept AS "concept"',
         'm.reference AS "reference"',
         'm.charge AS "charge"',
@@ -89,6 +91,10 @@ export class MovementsService {
 
     if (segment_id) {
       qb.andWhere('s.segment_id = :segment_id', { segment_id });
+    }
+
+    if (concept) {
+      qb.andWhere('m.concept = :concept', { concept });
     }
 
     qb.orderBy('m.date', 'ASC')

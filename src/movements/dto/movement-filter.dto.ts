@@ -10,11 +10,10 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class MovementFilterDto {
-  @ApiPropertyOptional({ description: 'ID de la empresa' })
-  @IsOptional()
+  @ApiProperty({ description: 'ID de la empresa' })
   @Type(() => Number)
   @IsInt()
-  company_id?: number;
+  company_id: number;
 
   @ApiPropertyOptional({ description: 'ID de la cuenta contable' })
   @IsOptional()
@@ -36,9 +35,10 @@ export class MovementFilterDto {
   @IsDateString()
   end_date: string;
 
-  @ApiProperty({ description: 'Nombre del concepto' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ description: 'Nombre del concepto' })
+  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   concept?: string;
 
   @ApiPropertyOptional({ description: 'Página' })

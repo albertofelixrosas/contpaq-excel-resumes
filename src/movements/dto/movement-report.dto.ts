@@ -23,6 +23,9 @@ export class MovementReportDto {
   number: number;
 
   @ApiProperty()
+  supplier: string;
+
+  @ApiProperty()
   concept: string;
 
   @ApiProperty()
