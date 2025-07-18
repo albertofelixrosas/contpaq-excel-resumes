@@ -15,12 +15,13 @@ export class CreateSegmentDto {
   code: string;
 
   @ApiProperty({
-    description: 'Cuenta contable correspondiente (id dentro de este sistema)',
+    description:
+      'Empresa a la que pertenece el segmento (id dentro de este sistema)',
     example: '8',
   })
   @IsInt()
   @IsPositive()
-  accounting_account_id: number;
+  company_id: number;
 
   @ApiPropertyOptional({
     description: 'Nombre del segmento',

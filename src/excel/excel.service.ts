@@ -1,5 +1,5 @@
 // src/excel/excel.service.ts
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { ExcelReaderService } from './reader/excel-reader.service';
 import { ExcelCalculatorService } from './calculator/excel-calculator.service';
@@ -68,7 +68,7 @@ export class ExcelService {
     return outputPath;
   }
 
-  async parseResume(filePath: string): Promise<void> {
+  async loadAllMovementDataByFilename(filePath: string): Promise<void> {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(filePath);
     const sheet = workbook.worksheets[0];
@@ -77,7 +77,12 @@ export class ExcelService {
 
     // 1️⃣ Buscar la razón social de la empresa
     const companyName = String(rows[1]?.[4] || '').trim();
-    console.log({ companyName });
+
+    if (!companyName) {
+      throw new BadRequestException(
+        'No se encontró la razón social en el documento',
+      );
+    }
 
     // Buscar la razón social en la base de datos para obtener su id
     try {
@@ -112,7 +117,7 @@ export class ExcelService {
             .join(' ')
             .trim();
           const segment = await this.segmentsService.findOrCreateByCode(
-            currentAccountId,
+            company.company_id,
             segmentCode,
           );
           currentSegmentId = segment.segment_id;
@@ -126,11 +131,13 @@ export class ExcelService {
           const movementReference = String(currentRow?.[5] || '');
           const movementCharge = String(currentRow?.[6] || '');
           const finalChargeValue = parseFloat(movementCharge);
+
           const dto: CreateMovementDto = {
             segment_id: currentSegmentId,
+            accounting_account_id: currentAccountId,
             date: convertToISODate(movementDate),
             number: parseInt(movementNumber),
-            concept: currentAccountName,
+            concept: currentAccountName, // valor por defecto, luego cambiará por el usuario
             charge: isNaN(finalChargeValue) ? null : finalChargeValue,
             reference: movementReference,
             supplier: movementConcept,

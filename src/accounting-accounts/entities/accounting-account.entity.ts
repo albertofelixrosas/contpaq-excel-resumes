@@ -3,11 +3,13 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  OneToMany,
   JoinColumn,
+  ManyToMany,
+  OneToMany,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 import { Segment } from 'src/segments/entities/segment.entity';
+import { Movement } from 'src/movements/entities/movement.entity';
 
 @Entity('accounting_accounts')
 export class AccountingAccount {
@@ -29,8 +31,9 @@ export class AccountingAccount {
   @JoinColumn({ name: 'company_id' })
   company: Company;
 
-  @OneToMany(() => Segment, (segment) => segment.accounting_account, {
-    cascade: true,
-  })
+  @ManyToMany(() => Segment, (segment) => segment.accounting_accounts)
   segments: Segment[];
+
+  @OneToMany(() => Movement, (m) => m.accounting_account)
+  movements: Movement[];
 }

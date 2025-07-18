@@ -12,6 +12,7 @@ import { Movement } from './entities/movement.entity';
 import { MovementFilterDto } from './dto/movement-filter.dto';
 import { PaginatedMovementsDto } from './dto/paginated-movements.dto';
 import { MovementReportDto } from './dto/movement-report.dto';
+import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-account.entity';
 
 @Injectable()
 export class MovementsService {
@@ -20,6 +21,8 @@ export class MovementsService {
     private readonly repo: Repository<Movement>,
     @InjectRepository(Segment)
     private readonly segmentsRepo: Repository<Segment>,
+    @InjectRepository(AccountingAccount)
+    private readonly accountsRepo: Repository<AccountingAccount>,
   ) {}
 
   async create(dto: CreateMovementDto) {
@@ -29,6 +32,14 @@ export class MovementsService {
     if (!segment) {
       throw new BadRequestException(
         `No existe ningun segmento con el id "${dto.segment_id}"`,
+      );
+    }
+    const account = await this.accountsRepo.findOneBy({
+      accounting_account_id: dto.accounting_account_id,
+    });
+    if (!account) {
+      throw new BadRequestException(
+        `No existe ninguna cuenta contable con el id "${dto.accounting_account_id}"`,
       );
     }
     const movement = this.repo.create(dto);
@@ -53,31 +64,29 @@ export class MovementsService {
       limit,
     } = filter;
 
-    console.log({ filter });
-
     const qb = this.repo
       .createQueryBuilder('m')
       .innerJoin('m.segment', 's')
-      .innerJoin('s.accounting_account', 'aa')
+      .innerJoin('m.accounting_account', 'aa')
       .innerJoin('aa.company', 'c')
       .select([
-        'm.movement_id AS "movement_id"',
-        'c.company_name AS "company_name"',
-        'aa.acount_code AS "acount_code"',
-        'aa.name AS "account_name"',
-        's.code AS "segment_code"',
-        'm.date AS "date"',
-        'm.number AS "number"',
-        'm.supplier AS "supplier"',
-        'm.concept AS "concept"',
-        'm.reference AS "reference"',
-        'm.charge AS "charge"',
-      ])
-      .where('m.date BETWEEN :start_date AND :end_date', {
-        start_date,
-        end_date,
-      })
-      .orderBy('m.date', 'ASC');
+        'm.movement_id AS movement_id',
+        'c.company_name AS company_name',
+        'aa.acount_code AS acount_code',
+        'aa.name AS account_name',
+        's.code AS segment_code',
+        'm.date AS date',
+        'm.number AS number',
+        'm.supplier AS supplier',
+        'm.concept AS concept',
+        'm.reference AS reference',
+        'm.charge AS charge',
+      ]);
+
+    qb.andWhere('m.date BETWEEN :start_date AND :end_date', {
+      start_date,
+      end_date,
+    });
 
     if (company_id) {
       qb.andWhere('c.company_id = :company_id', { company_id });
@@ -119,7 +128,7 @@ export class MovementsService {
     const qb = this.repo
       .createQueryBuilder('m')
       .innerJoin('m.segment', 's')
-      .innerJoin('s.accounting_account', 'aa')
+      .innerJoin('m.accounting_account', 'aa')
       .innerJoin('aa.company', 'c')
       .where('c.company_id = :companyId', { companyId })
       .select(['m.date AS date', 'COUNT(m.movement_id) AS count'])

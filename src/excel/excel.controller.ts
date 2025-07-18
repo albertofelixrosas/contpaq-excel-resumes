@@ -55,7 +55,7 @@ export class ExcelController {
           'Tipo de archivo invalido, los tipos admitidos son archivos excel (.xls, .xlsx).',
         );
       }
-      await this.excelService.parseResume(file.path);
+      await this.excelService.loadAllMovementDataByFilename(file.path);
       return {
         message: '¡Se ha procesado correctamente el archivo!',
         filename: file.filename,

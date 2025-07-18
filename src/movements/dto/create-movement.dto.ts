@@ -19,6 +19,15 @@ export class CreateMovementDto {
   segment_id: number;
 
   @ApiProperty({
+    description:
+      'El id de la cuenta contable (un ejemplo de como luce en el excel es "023 APK2-41")',
+    example: '7',
+  })
+  @IsPositive()
+  @IsInt()
+  accounting_account_id: number;
+
+  @ApiProperty({
     description: 'Fecha del movimiento',
     example: '2025-07-31',
   })

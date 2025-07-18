@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { AccountingAccount } from '../../accounting-accounts/entities/accounting-account.entity';
+import { Segment } from 'src/segments/entities/segment.entity';
 
 @Entity('companies')
 export class Company {
@@ -28,4 +29,7 @@ export class Company {
     (accounting_account) => accounting_account.company,
   )
   accounting_accounts: AccountingAccount[];
+
+  @OneToMany(() => Segment, (segment) => segment.company)
+  segments: Segment[];
 }

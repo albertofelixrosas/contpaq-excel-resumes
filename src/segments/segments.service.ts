@@ -7,27 +7,27 @@ import { CreateSegmentDto } from './dto/create-segment.dto';
 import { UpdateSegmentDto } from './dto/update-segment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-account.entity';
 import { Segment } from './entities/segment.entity';
 import { GetSegmentsQueryDto } from './dto/get-segment-query.dto';
+import { Company } from 'src/companies/entities/company.entity';
 
 @Injectable()
 export class SegmentsService {
   constructor(
     @InjectRepository(Segment)
     private readonly repo: Repository<Segment>,
-    @InjectRepository(AccountingAccount)
-    private readonly accountingAccountsRepo: Repository<AccountingAccount>,
+    @InjectRepository(Company)
+    private readonly companiesRepo: Repository<Company>,
   ) {}
 
   async create(dto: CreateSegmentDto) {
-    const accountingAccount = await this.accountingAccountsRepo.findOneBy({
-      accounting_account_id: dto.accounting_account_id,
+    const company = await this.companiesRepo.findOneBy({
+      company_id: dto.company_id,
     });
 
-    if (!accountingAccount) {
+    if (!company) {
       throw new BadRequestException(
-        `No existe ninguna cuenta contable con el id "${dto.accounting_account_id}"`,
+        `No existe ninguna empresa con el id "${dto.company_id}"`,
       );
     }
 
@@ -39,9 +39,11 @@ export class SegmentsService {
     const qb = this.repo.createQueryBuilder('segment');
 
     if (query.company_id) {
-      qb.innerJoin('segment.accounting_account', 'account').andWhere(
-        'account.company_id = :company_id',
-        { company_id: query.company_id },
+      qb.innerJoin('segment.company', 'company').andWhere(
+        'company.company_id = :company_id',
+        {
+          company_id: query.company_id,
+        },
       );
     }
 
@@ -60,15 +62,15 @@ export class SegmentsService {
     return segment;
   }
 
-  async findOrCreateByCode(accountId: number, code: string): Promise<Segment> {
+  async findOrCreateByCode(companyId: number, code: string): Promise<Segment> {
     let segment = await this.repo.findOneBy({
-      accounting_account_id: accountId,
+      company_id: companyId,
       code,
     });
 
     if (!segment) {
       const dto: CreateSegmentDto = {
-        accounting_account_id: accountId,
+        company_id: companyId,
         code,
       };
 
@@ -89,13 +91,13 @@ export class SegmentsService {
       );
     }
 
-    const accountingAccount = await this.accountingAccountsRepo.findOneBy({
-      accounting_account_id: dto.accounting_account_id,
+    const company = await this.companiesRepo.findOneBy({
+      company_id: dto.company_id,
     });
 
-    if (!accountingAccount) {
+    if (!company) {
       throw new BadRequestException(
-        `No existe ninguna cuenta contable con el id "${dto.accounting_account_id}"`,
+        `No existe ninguna empresa con el id "${dto.company_id}"`,
       );
     }
 

@@ -1,3 +1,4 @@
+import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-account.entity';
 import { Segment } from '../../segments/entities/segment.entity';
 import {
   Column,
@@ -15,6 +16,9 @@ export class Movement {
 
   @Column()
   segment_id: number;
+
+  @Column()
+  accounting_account_id: number;
 
   @Column({ type: 'date' })
   date: Date;
@@ -44,4 +48,8 @@ export class Movement {
   })
   @JoinColumn({ name: 'segment_id' })
   segment: Segment;
+
+  @ManyToOne(() => AccountingAccount)
+  @JoinColumn({ name: 'accounting_account_id' })
+  accounting_account: AccountingAccount;
 }
