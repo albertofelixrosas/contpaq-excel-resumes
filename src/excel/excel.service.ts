@@ -125,12 +125,13 @@ export class ExcelService {
           const movementConcept = String(currentRow?.[4] || ''); // Aquí es en realidad el proveedor
           const movementReference = String(currentRow?.[5] || '');
           const movementCharge = String(currentRow?.[6] || '');
+          const finalChargeValue = parseFloat(movementCharge);
           const dto: CreateMovementDto = {
             segment_id: currentSegmentId,
             date: convertToISODate(movementDate),
             number: parseInt(movementNumber),
             concept: currentAccountName,
-            charge: parseFloat(movementCharge),
+            charge: isNaN(finalChargeValue) ? null : finalChargeValue,
             reference: movementReference,
             supplier: movementConcept,
           };

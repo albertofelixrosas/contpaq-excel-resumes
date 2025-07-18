@@ -67,5 +67,5 @@ export class CreateMovementDto {
   @IsNumber({
     maxDecimalPlaces: 2,
   })
-  charge: number;
+  charge: number | null;
 }
