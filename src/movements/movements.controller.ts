@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { MovementsService } from './movements.service';
 import { CreateMovementDto } from './dto/create-movement.dto';
@@ -43,6 +44,17 @@ export class MovementsController {
   @ApiOkResponse({ description: 'Movimientos obtenidos correctamente' })
   async getMovements(@Query() filter: MovementFilterDto) {
     return this.movementsService.getMovements(filter);
+  }
+
+  @Get('suppliers')
+  @ApiQuery({ name: 'company_id', required: true, type: Number })
+  async getSuppliers(@Query('company_id') companyId: number) {
+    if (!companyId || isNaN(companyId)) {
+      throw new BadRequestException(
+        'company_id es obligatorio y debe ser un número',
+      );
+    }
+    return this.movementsService.getDistinctSuppliers(companyId);
   }
 
   @Get('heatmap')

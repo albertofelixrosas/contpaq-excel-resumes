@@ -41,6 +41,12 @@ export class MovementFilterDto {
   @IsNotEmpty()
   concept?: string;
 
+  @ApiPropertyOptional({ description: 'Nombre del provedor' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  supplier?: string;
+
   @ApiPropertyOptional({ description: 'Página' })
   @IsOptional()
   @Type(() => Number)

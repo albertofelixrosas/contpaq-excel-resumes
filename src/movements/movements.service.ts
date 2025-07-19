@@ -58,6 +58,7 @@ export class MovementsService {
       accounting_account_id,
       segment_id,
       concept,
+      supplier,
       start_date,
       end_date,
       page,
@@ -106,6 +107,10 @@ export class MovementsService {
       qb.andWhere('m.concept = :concept', { concept });
     }
 
+    if (supplier) {
+      qb.andWhere('m.supplier = :supplier', { supplier });
+    }
+
     qb.orderBy('m.date', 'ASC')
       .offset((page - 1) * limit)
       .limit(limit);
@@ -122,6 +127,19 @@ export class MovementsService {
       limit,
       pages: Math.ceil(total / limit),
     };
+  }
+
+  async getDistinctSuppliers(companyId: number): Promise<string[]> {
+    const result: { supplier: string }[] = await this.repo
+      .createQueryBuilder('m')
+      .innerJoin('m.segment', 's')
+      .where('m.supplier IS NOT NULL')
+      .andWhere('s.company_id = :companyId', { companyId })
+      .select('DISTINCT m.supplier', 'supplier')
+      .orderBy('m.supplier', 'ASC')
+      .getRawMany();
+
+    return result.map((r) => r.supplier);
   }
 
   async countMovementsByDate(companyId: number) {
