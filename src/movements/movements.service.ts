@@ -13,6 +13,7 @@ import { MovementFilterDto } from './dto/movement-filter.dto';
 import { PaginatedMovementsDto } from './dto/paginated-movements.dto';
 import { MovementReportDto } from './dto/movement-report.dto';
 import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-account.entity';
+import { MasiveChangeConceptDto } from './dto/masive-change-concept.dto';
 
 @Injectable()
 export class MovementsService {
@@ -158,6 +159,76 @@ export class MovementsService {
       date: r.date,
       count: Number(r.count),
     }));
+  }
+
+  async massiveChangeConcept(dto: MasiveChangeConceptDto) {
+    const {
+      company_id,
+      accounting_account_id,
+      segment_id,
+      concept,
+      supplier,
+      new_concept,
+    } = dto;
+
+    // Validar que haya al menos 1 filtro adicional
+    if (!accounting_account_id && !segment_id && !concept && !supplier) {
+      throw new BadRequestException(
+        'Debe proporcionar al menos un filtro adicional además del company_id para realizar el cambio masivo.',
+      );
+    }
+
+    // Paso 1: obtener los IDs
+    const idsQb = this.repo
+      .createQueryBuilder('m')
+      .select('m.movement_id')
+      .innerJoin(
+        'accounting_accounts',
+        'aa',
+        'aa.accounting_account_id = m.accounting_account_id AND aa.company_id = :company_id',
+        { company_id },
+      );
+
+    if (accounting_account_id) {
+      idsQb.andWhere('m.accounting_account_id = :accounting_account_id', {
+        accounting_account_id,
+      });
+    }
+
+    if (segment_id) {
+      idsQb.andWhere('m.segment_id = :segment_id', { segment_id });
+    }
+
+    if (concept) {
+      idsQb.andWhere('m.concept = :concept', { concept });
+    }
+
+    if (supplier) {
+      idsQb.andWhere('m.supplier = :supplier', { supplier });
+    }
+
+    const movementsToUpdate = await idsQb.getMany();
+
+    if (movementsToUpdate.length === 0) {
+      throw new BadRequestException(
+        'No se encontraron movimientos que cumplan con los filtros.',
+      );
+    }
+
+    const ids = movementsToUpdate.map((m) => m.movement_id);
+
+    // Paso 2: actualizar
+    const result = await this.repo
+      .createQueryBuilder()
+      .update()
+      .set({ concept: new_concept })
+      .where('movement_id IN (:...ids)', { ids })
+      .execute();
+
+    return {
+      affected: result.affected,
+      message: `Se actualizaron ${result.affected} movimientos al concepto "${new_concept}"`,
+    };
   }
 
   async findOne(id: number) {

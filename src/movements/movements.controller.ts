@@ -23,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { Movement } from './entities/movement.entity';
 import { MovementFilterDto } from './dto/movement-filter.dto';
+import { MasiveChangeConceptDto } from './dto/masive-change-concept.dto';
 
 @ApiTags('Movimientos')
 @Controller('movements')
@@ -77,6 +78,18 @@ export class MovementsController {
   })
   findOne(@Param('id') id: string) {
     return this.movementsService.findOne(+id);
+  }
+
+  @Patch('massive-change-concept')
+  @ApiOperation({
+    summary: 'Actualizar masivamente el concepto de movimientos filtrados',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Movimientos actualizados exitosamente',
+  })
+  async massiveChangeConcept(@Body() dto: MasiveChangeConceptDto) {
+    return this.movementsService.massiveChangeConcept(dto);
   }
 
   @Patch(':id')
