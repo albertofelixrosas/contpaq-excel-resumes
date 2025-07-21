@@ -10,6 +10,7 @@ import { databaseValidationSchema } from './config/validation';
 import { AccountingAccountsModule } from './accounting-accounts/accounting-accounts.module';
 import { SegmentsModule } from './segments/segments.module';
 import { MovementsModule } from './movements/movements.module';
+import { ConceptsModule } from './concepts/concepts.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MovementsModule } from './movements/movements.module';
     AccountingAccountsModule,
     SegmentsModule,
     MovementsModule,
+    ConceptsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
