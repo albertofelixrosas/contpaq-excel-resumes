@@ -47,6 +47,17 @@ export class MovementsController {
     return this.movementsService.getMovements(filter);
   }
 
+  @Get('concepts')
+  @ApiQuery({ name: 'company_id', required: true, type: Number })
+  async getConcepts(@Query('company_id') companyId: number) {
+    if (!companyId || isNaN(companyId)) {
+      throw new BadRequestException(
+        'company_id es obligatorio y debe ser un número',
+      );
+    }
+    return this.movementsService.getDistinctConcepts(companyId);
+  }
+
   @Get('suppliers')
   @ApiQuery({ name: 'company_id', required: true, type: Number })
   async getSuppliers(@Query('company_id') companyId: number) {

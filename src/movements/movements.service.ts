@@ -143,6 +143,19 @@ export class MovementsService {
     return result.map((r) => r.supplier);
   }
 
+  async getDistinctConcepts(companyId: number): Promise<string[]> {
+    const result: { concept: string }[] = await this.repo
+      .createQueryBuilder('m')
+      .innerJoin('m.segment', 's')
+      .where('m.supplier IS NOT NULL')
+      .andWhere('s.company_id = :companyId', { companyId })
+      .select('DISTINCT m.concept', 'concept')
+      .orderBy('m.concept', 'ASC')
+      .getRawMany();
+
+    return result.map((r) => r.concept);
+  }
+
   async countMovementsByDate(companyId: number) {
     const qb = this.repo
       .createQueryBuilder('m')
@@ -204,15 +217,16 @@ export class MovementsService {
     }
 
     if (supplier) {
-      idsQb.andWhere('m.supplier = :supplier', { supplier });
+      idsQb.andWhere('m.supplier LIKE :supplier', { supplier: `${supplier}%` });
     }
 
     const movementsToUpdate = await idsQb.getMany();
 
     if (movementsToUpdate.length === 0) {
-      throw new BadRequestException(
-        'No se encontraron movimientos que cumplan con los filtros.',
-      );
+      return {
+        affected: 0,
+        message: `No se encontraron movimientos que cumplan con los filtros.`,
+      };
     }
 
     const ids = movementsToUpdate.map((m) => m.movement_id);
@@ -225,9 +239,14 @@ export class MovementsService {
       .where('movement_id IN (:...ids)', { ids })
       .execute();
 
+    const updateTextCountPart =
+      result.affected === 1
+        ? 'actualizo un movimiento'
+        : `actualizaron ${result.affected} movimientos`;
+
     return {
       affected: result.affected,
-      message: `Se actualizaron ${result.affected} movimientos al concepto "${new_concept}"`,
+      message: `Se ${updateTextCountPart} al concepto "${new_concept}"`,
     };
   }
 
