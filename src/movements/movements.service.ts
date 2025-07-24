@@ -7,13 +7,17 @@ import { CreateMovementDto } from './dto/create-movement.dto';
 import { UpdateMovementDto } from './dto/update-movement.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Segment } from 'src/segments/entities/segment.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Movement } from './entities/movement.entity';
 import { MovementFilterDto } from './dto/movement-filter.dto';
 import { PaginatedMovementsDto } from './dto/paginated-movements.dto';
 import { MovementReportDto } from './dto/movement-report.dto';
 import { AccountingAccount } from 'src/accounting-accounts/entities/accounting-account.entity';
 import { MasiveChangeConceptDto } from './dto/masive-change-concept.dto';
+import {
+  MonthlyConceptRowDto,
+  MonthlyReportDto,
+} from './dto/monthly-report.dto';
 
 @Injectable()
 export class MovementsService {
@@ -24,6 +28,7 @@ export class MovementsService {
     private readonly segmentsRepo: Repository<Segment>,
     @InjectRepository(AccountingAccount)
     private readonly accountsRepo: Repository<AccountingAccount>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateMovementDto) {
@@ -248,6 +253,99 @@ export class MovementsService {
       affected: result.affected,
       message: `Se ${updateTextCountPart} al concepto "${new_concept}"`,
     };
+  }
+
+  async getMonthlyReport(
+    companyId: number,
+    year: number,
+  ): Promise<MonthlyReportDto> {
+    const query = `
+      SELECT
+        m.concept,
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 1, 1)) AS "Ene",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 2, 1)) AS "Feb",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 3, 1)) AS "Mar",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 4, 1)) AS "Abr",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 5, 1)) AS "May",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 6, 1)) AS "Jun",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 7, 1)) AS "Jul",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 8, 1)) AS "Ago",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 9, 1)) AS "Sep",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 10, 1)) AS "Oct",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 11, 1)) AS "Nov",
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 12, 1)) AS "Dic",
+        SUM(m.charge) AS "Total general"
+      FROM movements m
+      JOIN accounting_accounts aa ON m.accounting_account_id = aa.accounting_account_id
+      WHERE EXTRACT(YEAR FROM m."date") = $1 AND aa.company_id = $2
+      GROUP BY m.concept
+
+      UNION ALL
+
+      SELECT
+        'Total general',
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 1, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 2, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 3, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 4, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 5, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 6, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 7, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 8, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 9, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 10, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 11, 1)),
+        SUM(m.charge) FILTER (WHERE date_trunc('month', m."date") = MAKE_DATE($1, 12, 1)),
+        SUM(m.charge)
+      FROM movements m
+      JOIN accounting_accounts aa ON m.accounting_account_id = aa.accounting_account_id
+      WHERE EXTRACT(YEAR FROM m."date") = $1 AND aa.company_id = $2;
+    `;
+
+    const result = await this.dataSource.query<MonthlyConceptRowDto[]>(query, [
+      year,
+      companyId,
+    ]);
+
+    const months = [
+      { key: 'ene', label: 'Ene' },
+      { key: 'feb', label: 'Feb' },
+      { key: 'mar', label: 'Mar' },
+      { key: 'abr', label: 'Abr' },
+      { key: 'may', label: 'May' },
+      { key: 'jun', label: 'Jun' },
+      { key: 'jul', label: 'Jul' },
+      { key: 'ago', label: 'Ago' },
+      { key: 'sep', label: 'Sep' },
+      { key: 'oct', label: 'Oct' },
+      { key: 'nov', label: 'Nov' },
+      { key: 'dic', label: 'Dic' },
+    ];
+
+    const finalResult = {
+      months,
+      data: result.map((row) => ({
+        concept: row.concept,
+        total_general: Number(row['Total general']) || 0,
+        ene: Number(row['Ene']) || 0,
+        feb: Number(row['Feb']) || 0,
+        mar: Number(row['Mar']) || 0,
+        abr: Number(row['Abr']) || 0,
+        may: Number(row['May']) || 0,
+        jun: Number(row['Jun']) || 0,
+        jul: Number(row['Jul']) || 0,
+        ago: Number(row['Ago']) || 0,
+        sep: Number(row['Sep']) || 0,
+        oct: Number(row['Oct']) || 0,
+        nov: Number(row['Nov']) || 0,
+        dic: Number(row['Dic']) || 0,
+      })),
+    };
+
+    console.log({ result });
+    console.log({ finalResult });
+
+    return finalResult;
   }
 
   async findOne(id: number) {

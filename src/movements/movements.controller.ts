@@ -77,6 +77,18 @@ export class MovementsController {
     return this.movementsService.countMovementsByDate(companyId);
   }
 
+  @Get('monthly-report')
+  @ApiOperation({ summary: 'Resumen de gastos por concepto y mes' })
+  @ApiQuery({ name: 'company_id', type: Number, required: true })
+  @ApiQuery({ name: 'year', type: Number, required: true })
+  @ApiResponse({ status: 200, description: 'Datos para heatmap' })
+  async getMonthlyReport(
+    @Query('company_id', ParseIntPipe) company_id: number,
+    @Query('year', ParseIntPipe) year: number,
+  ) {
+    return this.movementsService.getMonthlyReport(company_id, year);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un movimiento por su ID' })
   @ApiResponse({
