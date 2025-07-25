@@ -1,9 +1,4 @@
-export interface MonthDto {
-  key: string;
-  label: string;
-}
-
-export interface MonthlyConceptRowDto {
+export interface MonthlyReportRow {
   concept: string;
   total_general: number;
   ene: number;
@@ -20,7 +15,9 @@ export interface MonthlyConceptRowDto {
   dic: number;
 }
 
-export class MonthlyReportDto {
-  months: MonthDto[];
-  data: MonthlyConceptRowDto[];
+export interface SegmentedMonthlyReportDto {
+  segment_id: number;
+  segment_code: string;
+  months: { key: string; label: string }[];
+  data: MonthlyReportRow[];
 }

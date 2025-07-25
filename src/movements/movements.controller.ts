@@ -70,9 +70,9 @@ export class MovementsController {
   }
 
   @Get('heatmap')
-  @ApiOperation({ summary: 'Heatmap de movimientos por fecha' })
+  @ApiOperation({ summary: 'Resumen ' })
   @ApiQuery({ name: 'company_id', type: Number, required: true })
-  @ApiResponse({ status: 200, description: 'Datos para heatmap' })
+  @ApiResponse({ status: 200, description: 'Datos para el resumen ' })
   async getHeatmap(@Query('company_id', ParseIntPipe) companyId: number) {
     return this.movementsService.countMovementsByDate(companyId);
   }
@@ -81,12 +81,33 @@ export class MovementsController {
   @ApiOperation({ summary: 'Resumen de gastos por concepto y mes' })
   @ApiQuery({ name: 'company_id', type: Number, required: true })
   @ApiQuery({ name: 'year', type: Number, required: true })
-  @ApiResponse({ status: 200, description: 'Datos para heatmap' })
+  @ApiResponse({
+    status: 200,
+    description: 'Datos para mostrar resumen de gastos',
+  })
   async getMonthlyReport(
     @Query('company_id', ParseIntPipe) company_id: number,
     @Query('year', ParseIntPipe) year: number,
   ) {
     return this.movementsService.getMonthlyReport(company_id, year);
+  }
+
+  @Get('segmented-monthly-report')
+  @ApiOperation({
+    summary:
+      'Resumen de gastos por concepto y mes dividido en los segmentos disponibles',
+  })
+  @ApiQuery({ name: 'company_id', type: Number, required: true })
+  @ApiQuery({ name: 'year', type: Number, required: true })
+  @ApiResponse({
+    status: 200,
+    description: 'Datos para mostrar resumen de gastos divididos por segmentos',
+  })
+  async getSegmentedMonthlyReport(
+    @Query('company_id', ParseIntPipe) company_id: number,
+    @Query('year', ParseIntPipe) year: number,
+  ) {
+    return this.movementsService.getSegmentedMonthlyReport(company_id, year);
   }
 
   @Get(':id')
