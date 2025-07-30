@@ -7,7 +7,7 @@ import { DatabaseConfig } from './types/DatabaseConfig';
 
 export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
   inject: [ConfigService],
-  useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
+  useFactory: (configService: ConfigService) => {
     const dbConfig = configService.get<DatabaseConfig>('database');
 
     if (!dbConfig) {
@@ -17,7 +17,7 @@ export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
     const isProd = configService.get<string>('NODE_ENV') === 'production';
 
     const result: TypeOrmModuleOptions = {
-      type: dbConfig.type,
+      type: 'postgres', // explicitly set to a valid TypeORM type
       host: dbConfig.host,
       port: dbConfig.port,
       username: dbConfig.username,
@@ -28,6 +28,12 @@ export const typeOrmConfigAsync: TypeOrmModuleAsyncOptions = {
       migrations: [__dirname + '/../migrations/*{.ts,.js}'],
       migrationsRun: isProd,
       logging: !isProd,
+      ssl: true,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false, // evita errores de certificado autofirmado
+        },
+      },
     };
 
     return result;
